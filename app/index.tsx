@@ -2,7 +2,7 @@ import React from 'react';
 import {Text, Image, StyleSheet, TouchableOpacity, useColorScheme, Dimensions, AppRegistry} from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedView } from '@/components/ThemedView';
-import AppLoadingComponent from './components/AppLoadingComponent';
+import AppLoadingComponent from '../components/AppLoadingComponent';
 import { useRouter } from 'expo-router';
 import 'react-native-gesture-handler';
 
