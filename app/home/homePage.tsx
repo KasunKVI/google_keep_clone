@@ -40,10 +40,26 @@ const Home: React.FC = () => {
 
     const handleSelectNoteType = (type: string) => {
 
-        router.push({
-            pathname: '/NoteCard',
-            params: { type: 'text' }  // or 'image', 'drawing', 'list'
-        });
+        switch (type) {
+            case 'text':
+                router.push({
+                    pathname: '/NoteCard',
+                    params: { type: 'text' }
+                });
+                break;
+            case 'image':
+
+                break;
+            case 'drawing':
+
+                break;
+            case 'list':
+
+                break;
+            default:
+                break
+        }
+
         setSelectedNoteType(type);
         setShowOptions(false);
     };
