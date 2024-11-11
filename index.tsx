@@ -1,9 +1,11 @@
 import React from 'react';
-import { Text, Image, StyleSheet, TouchableOpacity, useColorScheme,Dimensions } from 'react-native';
+import {Text, Image, StyleSheet, TouchableOpacity, useColorScheme, Dimensions, AppRegistry} from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedView } from '@/components/ThemedView';
-import AppLoadingComponent from '../components/AppLoadingComponent';
+import AppLoadingComponent from './components/AppLoadingComponent';
 import { useRouter } from 'expo-router';
+import 'react-native-gesture-handler';
+
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -38,7 +40,7 @@ const Index: React.FC = () => {
                     </Text>
                 </ThemedView>
 
-                <TouchableOpacity  style={styles.getStartButton} onPress={() => router.push('..//_sitemap')}>
+                <TouchableOpacity  style={styles.getStartButton} onPress={() => router.push('/home')}>
                     <Text style={styles.signUp}>Get Start</Text>
                 </TouchableOpacity>
 
