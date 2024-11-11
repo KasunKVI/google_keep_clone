@@ -7,26 +7,70 @@ export default function Layout() {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <Drawer
-                screenOptions={{
-                    header: ({ navigation }) => (
-                        <View style={styles.searchBar}>
-                            <TouchableOpacity
-                                style={styles.iconButton}
-                                onPress={() => navigation.openDrawer()}
-                            >
-                                <Icon name="menu" size={30} color="#000" />
-                            </TouchableOpacity>
+                screenOptions={({ route }) => ({
+                    header: ({ navigation }) => {
+                        // Customize header based on route
+                        const getPlaceholder = () => {
+                            switch (route.name) {
+                                case 'homePage':
+                                    return 'Search your notes';
+                                case 'reminders':
+                                    return 'Search reminders';
+                                case 'archive':
+                                    return 'Search archive';
+                                case 'trash':
+                                    return 'Search trash';
+                                default:
+                                    return 'Search';
+                            }
+                        };
 
-                            <TextInput
-                                placeholder="Search your notes"
-                                style={styles.searchInput}
-                            />
+                        const getHeaderStyle = () => {
+                            switch (route.name) {
+                                case 'homePage':
+                                    return '#ffd7d7';  // Light gray background for search bar
+                                case 'reminders':
+                                    return '#ffffff';
+                                case 'archive':
+                                    return '#ffffff';
+                                case 'trash':
+                                    return '#ffffff';
+                                default:
+                                    return '#ffffff';
+                            }
+                        };
 
-                            <TouchableOpacity style={styles.iconButton}>
-                                <Icon name="account-circle" size={30} color="#000" />
-                            </TouchableOpacity>
-                        </View>
-                    ),
+                        return (
+                            <View style={styles.headerContainer}>
+                                <View style={[
+                                    styles.searchBar,
+                                    { backgroundColor: getHeaderStyle() }
+                                ]}>
+                                    <TouchableOpacity
+                                        style={styles.iconButton}
+                                        onPress={() => navigation.openDrawer()}
+                                    >
+                                        <Icon name="menu" size={30} color="#000" />
+                                    </TouchableOpacity>
+
+                                    <TextInput
+                                        placeholder={getPlaceholder()}
+                                        style={styles.searchInput}
+                                    />
+
+                                    {route.name === 'homePage' ? (
+                                        <TouchableOpacity style={styles.iconButton}>
+                                            <Icon name="account-circle" size={30} color="#000" />
+                                        </TouchableOpacity>
+                                    ) : (
+                                        <TouchableOpacity style={styles.iconButton}>
+                                            <Icon name="search" size={24} color="#5f6368" />
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+                            </View>
+                        );
+                    },
                     drawerStyle: {
                         backgroundColor: '#fff',
                     },
@@ -35,19 +79,18 @@ export default function Layout() {
                     },
                     drawerActiveTintColor: '#1a73e8',
                     drawerInactiveTintColor: '#202124',
-                }}
+                    drawerItemStyle: {
+                        backgroundColor: 'transparent',
+                        borderRadius: 0,
+                        marginVertical: 0,
+                        marginHorizontal: 0,
+                    },
+                    pressColor: '#e8f0fe',
+                    pressOpacity: 0.8
+                })}
             >
                 <Drawer.Screen
-                    name="homePage"  // This should be "index" instead of "homePage"
-                    options={{
-                        drawerLabel: "Home",
-                        drawerIcon: ({ color, size }) => (
-                            <Icon name="home" size={size} color={color} />
-                        ),
-                    }}
-                />
-                <Drawer.Screen
-                    name="notes"
+                    name="homePage"
                     options={{
                         drawerLabel: "Notes",
                         drawerIcon: ({ color, size }) => (
@@ -114,24 +157,28 @@ export default function Layout() {
     );
 }
 
+
+
+
 const styles = StyleSheet.create({
+    headerContainer: {
+        backgroundColor: '#ffffff',
+        paddingTop: 50,
+        paddingHorizontal: 10,
+    },
     searchBar: {
         flexDirection: "row",
         alignItems: "center",
-        padding: 10,
+        padding: 5,
         justifyContent: "space-between",
-        marginTop: 30,
-        backgroundColor: "#b3ccf5",
-        marginHorizontal: 10,
         borderRadius: 35,
     },
     iconButton: {
         padding: 10,
     },
     searchInput: {
-        backgroundColor: "#b3ccf5",
-        padding: 10,
         flex: 1,
         marginHorizontal: 10,
+        fontSize: 16,
     },
 });
