@@ -16,12 +16,15 @@ import {ThemedView} from "@/components/ThemedView";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker from 'react-datepicker';
+// import 'react-datepicker/dist/react-datepicker.css';
 import {useRouter} from "expo-router";
 import {storage,auth} from '@/firebaseConfig';
 import Cookies from 'universal-cookie'; // Import cookies library
 import firebase from "firebase/compat";
 import {getDownloadURL, ref, uploadBytes} from 'firebase/storage';
 import {saveNote} from "@/services/NoteService";
+import * as Notifications from 'expo-notifications';
 
 const COLORS = [
     '#ffffff', '#f28b82', '#fbbc04', '#fff475', '#ccff90',
@@ -73,6 +76,28 @@ const NoteCreationScreen: React.FC = () => {
     //     }
     // };
 
+    Notifications.setNotificationHandler({
+        async handleNotification() {
+            return {
+                shouldShowAlert: true,
+                shouldPlaySound: true,
+                shouldSetBadge: false,
+            };
+        },
+    });
+
+// In handleSave method
+    const scheduleNotification = async (reminderDate: Date, noteTitle: string) => {
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: "Reminder",
+                body: `Note: ${noteTitle}`,
+                sound: true,
+            },
+            trigger: reminderDate,
+        });
+    };
+
     const handleSave = async () => {
         if (!title.trim()) {
             Alert.alert('Error', 'Please enter a title for your note');
@@ -104,6 +129,10 @@ const NoteCreationScreen: React.FC = () => {
 
             const base64Images = await Promise.all(imagePromises);
 
+
+            if (reminderDate) {
+                await scheduleNotification(reminderDate, title);
+            }
 
             // Prepare note data
             const noteData = {
@@ -163,13 +192,20 @@ const NoteCreationScreen: React.FC = () => {
     };
 
     const handleReminderChange = (event: any, selectedDate?: Date) => {
-        setShowReminderPicker(false);
-        if (selectedDate) {
-            setReminderDate(selectedDate);
+        const isWeb = Platform.OS === 'web';
+
+        if (isWeb) {
+            // Use a different method for web
+            const webDate = new Date(event.target.value);
+            setReminderDate(webDate);
             setShowReminder(true);
-            // Here you would typically set up the actual reminder notification
-            // using something like react-native-notifications
-            console.log('Reminder set for:', selectedDate);
+        } else {
+            // Existing mobile logic
+            setShowReminderPicker(false);
+            if (selectedDate) {
+                setReminderDate(selectedDate);
+                setShowReminder(true);
+            }
         }
     };
 
@@ -380,7 +416,7 @@ const NoteCreationScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-    // ... previous styles remain the same ...
+
     reminderBadge: {
         flexDirection: 'row',
         alignItems: 'center',

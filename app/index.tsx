@@ -6,6 +6,7 @@ import AppLoadingComponent from '../components/AppLoadingComponent';
 import {useRootNavigationState, useRouter, useSegments} from 'expo-router';
 import 'react-native-gesture-handler';
 import Cookies from 'universal-cookie'; // Import cookies library
+import * as Notifications from 'expo-notifications';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -19,6 +20,17 @@ const Index: React.FC = () => {
     // Define colors for light and dark themes
     const textColor = colorScheme === 'dark' ? '#FFFFFF' : '#000000';
     const cookies = new Cookies();
+
+    useEffect(() => {
+        const requestNotificationPermissions = async () => {
+            const { status } = await Notifications.requestPermissionsAsync();
+            if (status !== 'granted') {
+                alert('No notification permissions!');
+            }
+        };
+
+        requestNotificationPermissions();
+    }, []);
 
     useEffect(() => {
         if (!navigationState?.key) return;
