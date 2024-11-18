@@ -9,7 +9,9 @@ function signUp(userData: any) {
         body: JSON.stringify({
             name: userData.name,
             email: userData.email,
-            image: userData.picture, // Replace or handle securely
+            image: userData.picture,
+            userId: userData.userId,
+            // Replace or handle securely
         }),
     });
 }
