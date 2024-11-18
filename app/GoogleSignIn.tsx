@@ -64,6 +64,7 @@ export default function GoogleSignIn() {
                     name: userData.name,
                     email: userData.email,
                     picture: userData.picture,
+                    userId: result.user.uid,
                 });
 
 
