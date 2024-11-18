@@ -128,7 +128,10 @@ const Home: React.FC = () => {
 
                 break;
             case 'list':
-
+                router.push({
+                    pathname: '/TaskList',
+                    params: { type: 'text' }
+                });
                 break;
             default:
                 break
