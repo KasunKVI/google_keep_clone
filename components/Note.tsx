@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface NoteCardProps {
@@ -15,29 +15,27 @@ interface NoteCardProps {
 }
 
 const Note: React.FC<NoteCardProps> = ({ note, onPress }) => {
-    const renderImage = ({ item }: { item: string }) => (
-        <Image
-            source={{ uri: item }}
-            style={styles.image}
-            resizeMode="cover"
-        />
-    );
-
     return (
-        <TouchableOpacity style={[styles.container,{backgroundColor:note.backgroundColor }]} onPress={() => onPress(note)}>
+        <TouchableOpacity style={[styles.container, { backgroundColor: note.backgroundColor }]} onPress={() => onPress(note)}>
+            {/* Images Row */}
             {note.images && note.images.length > 0 && (
-                <FlatList
-                    data={note.images}
-                    renderItem={renderImage}
-                    keyExtractor={(_, index) => index.toString()}
-                    horizontal
-                    style={styles.imageList}
-                />
+                <View style={styles.imageRow}>
+                    {note.images.map((image, index) => (
+                        <Image
+                            key={index}
+                            source={{ uri: image }}
+                            style={styles.image}
+                            resizeMode="cover"
+                        />
+                    ))}
+                </View>
             )}
+            {/* Title and Content */}
             <View style={styles.content}>
                 <Text style={styles.title}>{note.title}</Text>
                 <Text style={styles.text}>{note.content}</Text>
             </View>
+            {/* Pinned Icon */}
             {note.pinned && (
                 <Icon name="push-pin" size={24} color="#666" style={styles.pinIcon} />
             )}
@@ -52,18 +50,17 @@ const styles = StyleSheet.create({
         borderColor: '#e0e0e0',
         borderRadius: 8,
         marginVertical: 8,
-        flexDirection: 'row',
-        alignItems: 'center',
+        backgroundColor: '#ffffff',
     },
-    imageList: {
-        marginRight: 16,
-        maxHeight: 60,
+    imageRow: {
+        flexDirection: 'row',
+        marginBottom: 8,
     },
     image: {
-        width: 60,
-        height: 60,
+        flex: 1,
+        height: 100, // Adjust height as needed
+        marginRight: 4, // Space between images
         borderRadius: 8,
-        marginRight: 8,
     },
     content: {
         flex: 1,
@@ -78,7 +75,9 @@ const styles = StyleSheet.create({
         color: '#666',
     },
     pinIcon: {
-        marginLeft: 16,
+        position: 'absolute',
+        top: 10,
+        right: 10,
     },
 });
 

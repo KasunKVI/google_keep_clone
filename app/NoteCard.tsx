@@ -1,20 +1,27 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
-    View,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
     Text,
     TextInput,
-    StyleSheet,
     TouchableOpacity,
-    Platform,
-    KeyboardAvoidingView,
-    ScrollView,
-    Image,
-    Modal,
+    View,
+    Alert
 } from 'react-native';
-import { ThemedView } from "@/components/ThemedView";
+import {ThemedView} from "@/components/ThemedView";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {useRouter} from "expo-router";
+import {storage,auth} from '@/firebaseConfig';
+import Cookies from 'universal-cookie'; // Import cookies library
+import firebase from "firebase/compat";
+import {getDownloadURL, ref, uploadBytes} from 'firebase/storage';
+import {saveNote} from "@/services/NoteService";
 
 const COLORS = [
     '#ffffff', '#f28b82', '#fbbc04', '#fff475', '#ccff90',
@@ -29,7 +36,107 @@ const NoteCreationScreen: React.FC = () => {
     const [showColorPicker, setShowColorPicker] = useState(false);
     const [showReminder, setShowReminder] = useState(false);
     const [reminderDate, setReminderDate] = useState<Date | null>(null);
+    const [pinned, setPinned] = useState(false);
     const [showReminderPicker, setShowReminderPicker] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const router = useRouter();
+    const cookies = new Cookies();
+
+    interface UserInfo {
+        picture: string;
+        name: string;
+        email: string;
+    }
+
+    // // Function to upload a single image to Firebase Storage
+    // const uploadImageToFirebase = async (uri: string): Promise<string> => {
+    //     try {
+    //         const response = await fetch(uri);
+    //         const blob = await response.blob();
+    //
+    //         if (!auth.currentUser?.uid) {
+    //             throw new Error('User id not available');
+    //         }
+    //
+    //         const filename = `users/${auth.currentUser.uid}/notes/${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    //         const storageRef = ref(storage, filename);
+    //
+    //         // Upload to Firebase Storage
+    //         await uploadBytes(storageRef, blob);
+    //
+    //         // Get download URL
+    //         return await getDownloadURL(storageRef);
+    //     } catch (error) {
+    //         console.error('Error uploading image:', error);
+    //         throw error;
+    //     }
+    // };
+
+    const handleSave = async () => {
+        if (!title.trim()) {
+            Alert.alert('Error', 'Please enter a title for your note');
+            return;
+        }
+
+        if (!auth.currentUser) {
+            Alert.alert('Error', 'Please sign in to save notes');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            // // Upload all images to Firebase Storage
+            // const uploadPromises = images.map(uri => uploadImageToFirebase(uri));
+            // const imageUrls = await Promise.all(uploadPromises);
+
+            // Convert images to base64 for MongoDB storage
+            const imagePromises = images.map(async (uri) => {
+                const response = await fetch(uri);
+                const blob = await response.blob();
+                return new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            });
+
+            const base64Images = await Promise.all(imagePromises);
+
+
+            // Prepare note data
+            const noteData = {
+                userId: auth.currentUser.uid,
+                title,
+                content: note,
+                backgroundColor,
+                images: base64Images,
+                reminder: reminderDate,
+                pinned,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            // Save note data to MongoDB
+           const save= await saveNote(noteData);
+
+            // Redirect to home page
+            if(save.status===201){
+                router.push('/home/homePage')
+            }
+
+
+        } catch (error) {
+            console.error('Error saving note:', error);
+            Alert.alert(
+                'Error',
+                'Failed to save note. Please try again.'
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const pickImage = async () => {
         try {
@@ -147,12 +254,16 @@ const NoteCreationScreen: React.FC = () => {
                 style={styles.keyboardAvoid}
             >
                 <View style={styles.header}>
-                    <TouchableOpacity style={styles.headerButton}>
+                    <TouchableOpacity style={styles.headerButton}
+                        onPress={()=> router.push('/home/homePage')}
+                    >
                         <Icon name="arrow-back" size={24} color="#666" />
                     </TouchableOpacity>
 
                     <View style={styles.headerActions}>
-                        <TouchableOpacity style={styles.headerButton}>
+                        <TouchableOpacity style={styles.headerButton}
+                            onPress={() => setPinned(!pinned)}
+                        >
                             <Icon name="push-pin" size={24} color="#666" />
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -241,8 +352,14 @@ const NoteCreationScreen: React.FC = () => {
                     </View>
 
                     <View style={styles.footerRight}>
-                        <TouchableOpacity style={styles.editedButton}>
+                        <TouchableOpacity style={styles.toolbarButton}>
                             <Icon name="more-vert" size={24} color="#666" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.saveButton}
+                            onPress={handleSave}
+                        >
+                            <Text style={styles.saveButtonText}>Save</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -345,6 +462,18 @@ const styles = StyleSheet.create({
     footerRight: {
         flexDirection: 'row',
         alignItems: 'center',
+    },
+    saveButton: {
+        backgroundColor: '#4285f4',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        marginLeft: 8,
+    },
+    saveButtonText: {
+        color: '#ffffff',
+        fontWeight: '500',
+        fontSize: 14,
     },
     editedButton: {
         padding: 8,
