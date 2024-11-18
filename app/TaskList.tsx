@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import  Icon  from 'react-native-vector-icons/MaterialIcons';
 import { StyleSheet, View, TextInput, TouchableOpacity, FlatList, Text } from 'react-native';
+import {saveTaskList}  from "@/services/TaskListService";
+import {useRouter} from "expo-router";
 
 interface Task {
     id: number;
@@ -11,6 +13,8 @@ const TaskList = () => {
     const [tasks, setTasks] = useState([] as Task[]);
     const [newTask, setNewTask] = useState('');
     const [title, setTitle] = useState('');
+
+    const router = useRouter();
 
     const handleAddTask = () => {
         if (newTask.trim()) {
@@ -36,20 +40,19 @@ const TaskList = () => {
             console.log('Saving tasks:', tasks);
 
 
+            const task = {
+                title,
+                tasks,
+            };
 
-            const response = await fetch('/api/tasks', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(tasks),
-            });
+            const response = await saveTaskList(task);
 
-            if (response.ok) {
-                console.log('Tasks saved successfully');
-            } else {
-                console.error('Error saving tasks');
+            console.log('Response:', response);
+            if (response) {
+                console.log('Task list saved successfully');
+                router.push('/home/homePage');
             }
+
         } catch (error) {
             console.error('Error saving tasks:', error);
         }
