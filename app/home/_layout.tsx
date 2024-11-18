@@ -57,6 +57,10 @@ export default function Layout() {
                                     <TextInput
                                         placeholder={getPlaceholder()}
                                         style={styles.searchInput}
+                                        onChangeText={(text) => router.push({
+                                            pathname: '/home/homePage',
+                                            params: { searchText: text }
+                                        })}
                                     />
 
                                     {route.name === 'homePage' ? (

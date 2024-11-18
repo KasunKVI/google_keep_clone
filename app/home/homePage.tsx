@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import {View, TextInput, StyleSheet, Text, TouchableOpacity, Animated, FlatList} from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useRouter } from 'expo-router';
+import {useLocalSearchParams, useRouter} from 'expo-router';
 import NoteCard from '@/components/Note';
 
 import axios from 'axios';
@@ -25,6 +25,9 @@ const Home: React.FC = () => {
     const [notes, setNotes] = useState<Note[]>([]);
     const [pinnedNote, setPinnedNote] = useState<Note | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const { searchText } = useLocalSearchParams<{ searchText?: string }>();
+    const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
+
 
     const router = useRouter();
 
@@ -44,6 +47,23 @@ const Home: React.FC = () => {
             })
         ]).start();
     }, [showOptions]);
+
+    // Effect to filter notes based on search text from drawer
+    useEffect(() => {
+        if (!searchText || searchText.trim() === '') {
+            // If search text is empty, show all non-pinned notes
+            setFilteredNotes(notes.filter(note => !note.pinned));
+        } else {
+            // Filter notes by title or content (case-insensitive)
+            const filtered = notes.filter(note =>
+
+                note.title.toLowerCase().includes(searchText.toLowerCase()) ||
+                note.content.toLowerCase().includes(searchText.toLowerCase())
+
+            );
+            setFilteredNotes(filtered);
+        }
+    }, [searchText, notes]);
 
     useEffect(() => {
         const fetchNotes = async () => {
@@ -65,6 +85,8 @@ const Home: React.FC = () => {
             }
 
     };
+
+
 
         // Add authentication state listener
         const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -136,7 +158,7 @@ const Home: React.FC = () => {
                 <NoteCard note={pinnedNote} onPress={handleNotePress} />
             )}
             <FlatList
-                data={notes.filter((note) => !note.pinned)}
+                data={filteredNotes}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 columnWrapperStyle={styles.row}
@@ -145,6 +167,15 @@ const Home: React.FC = () => {
                         <NoteCard note={item} onPress={handleNotePress} />
                     </View>
                 )}
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>
+                            {searchText && searchText.trim() !== ''
+                                ? 'No notes found matching your search'
+                                : 'No notes yet'}
+                        </Text>
+                    </View>
+                }
             />
 
             <TouchableOpacity
@@ -262,6 +293,16 @@ const styles = StyleSheet.create({
     },
     columnItem: {
         width: '48%', // Slightly less than 50% to add some spacing
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 50,
+    },
+    emptyText: {
+        color: '#888',
+        fontSize: 16,
     }
 });
 
