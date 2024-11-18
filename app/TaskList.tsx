@@ -2,10 +2,15 @@ import React, { useState } from 'react';
 import  Icon  from 'react-native-vector-icons/MaterialIcons';
 import { StyleSheet, View, TextInput, TouchableOpacity, FlatList, Text } from 'react-native';
 
+interface Task {
+    id: number;
+    text: string;
+    completed: boolean;
+}
 const TaskList = () => {
-    const [tasks, setTasks] = useState([{ id: 1, text: 'Checked item', completed: true }]);
+    const [tasks, setTasks] = useState([] as Task[]);
     const [newTask, setNewTask] = useState('');
-    const [title, setTitle] = useState('Tomorrow');
+    const [title, setTitle] = useState('');
 
     const handleAddTask = () => {
         if (newTask.trim()) {
@@ -28,6 +33,10 @@ const TaskList = () => {
 
     const handleSaveChanges = async () => {
         try {
+            console.log('Saving tasks:', tasks);
+
+
+
             const response = await fetch('/api/tasks', {
                 method: 'POST',
                 headers: {
