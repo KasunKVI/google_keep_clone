@@ -65,7 +65,7 @@ export default function Layout() {
 
                                     {route.name === 'homePage' ? (
                                         <TouchableOpacity style={styles.iconButton}
-                                                          onPress={() => router.push('../home/ProfileScreen')}
+                                                          onPress={() => router.push('../ProfileScreen')}
 
                                         >
                                             <Icon name="account-circle" size={30} color="#000" />
@@ -161,6 +161,7 @@ export default function Layout() {
                     }}
                 />
             </Drawer>
+
         </GestureHandlerRootView>
     );
 }

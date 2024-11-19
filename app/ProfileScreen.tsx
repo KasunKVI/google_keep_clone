@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {View, Text, Image, StyleSheet, Button} from 'react-native';
 import Cookies from 'universal-cookie'; // Import cookies library
-import GoogleSignIn from "../GoogleSignIn";
+import GoogleSignIn from "./GoogleSignIn";
 import {auth} from "@/firebaseConfig";
 import {router} from "expo-router";
 
