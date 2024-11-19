@@ -7,28 +7,48 @@ import NoteCard from '@/components/Note';
 
 import axios from 'axios';
 import {auth} from "@/firebaseConfig";
+import TaskListCard from "@/components/Task";
 
-interface Note {
+interface Task {
+    id: string;
+    text: string;
+    completed: boolean;
+}
+
+interface BaseItem {
     id: string;
     title: string;
-    content: string;
     backgroundColor: string;
-    images?: string[];
     pinned?: boolean;
     reminder?: Date | null;
+    type: 'note' | 'tasklist';
 }
+
+interface Note extends BaseItem {
+    type: 'note';
+    content: string;
+    images?: string[];
+}
+
+interface TaskList extends BaseItem {
+    type: 'tasklist';
+    tasks: Task[];
+}
+
+type ListItem = Note | TaskList;
+
 const Home: React.FC = () => {
     const [selectedNoteType, setSelectedNoteType] = useState<string | null>(null);
     const [showOptions, setShowOptions] = useState(false);
     const optionsAnim = useRef(new Animated.Value(0)).current;
     const rotateAnimation = useRef(new Animated.Value(0)).current;
-    const [notes, setNotes] = useState<Note[]>([]);
-    const [pinnedNote, setPinnedNote] = useState<Note | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { searchText } = useLocalSearchParams<{ searchText?: string }>();
+    const [notes, setNotes] = useState<Note[]>([]);
+    const [taskLists, setTaskLists] = useState<TaskList[]>([]);
+    const [pinnedNote, setPinnedNote] = useState<ListItem | null>(null);
     const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
-
-
+    const [filteredTaskLists, setFilteredTaskLists] = useState<TaskList[]>([]);
     const router = useRouter();
 
     // Animate options when showOptions changes
@@ -47,23 +67,31 @@ const Home: React.FC = () => {
             })
         ]).start();
     }, [showOptions]);
-
-    // Effect to filter notes based on search text from drawer
     useEffect(() => {
         if (!searchText || searchText.trim() === '') {
-            // If search text is empty, show all non-pinned notes
             setFilteredNotes(notes.filter(note => !note.pinned));
+            setFilteredTaskLists(taskLists.filter(taskList => !taskList.pinned));
         } else {
-            // Filter notes by title or content (case-insensitive)
-            const filtered = notes.filter(note =>
+            const searchLower = searchText.toLowerCase();
 
-                note.title.toLowerCase().includes(searchText.toLowerCase()) ||
-                note.content.toLowerCase().includes(searchText.toLowerCase())
-
+            // Filter notes
+            const filteredNotes = notes.filter(note =>
+                note.title.toLowerCase().includes(searchLower) ||
+                note.content.toLowerCase().includes(searchLower)
             );
-            setFilteredNotes(filtered);
+
+            // Filter task lists
+            const filteredTasks = taskLists.filter(taskList =>
+                taskList.title.toLowerCase().includes(searchLower) ||
+                taskList.tasks.some(task =>
+                    task.text.toLowerCase().includes(searchLower)
+                )
+            );
+
+            setFilteredNotes(filteredNotes);
+            setFilteredTaskLists(filteredTasks);
         }
-    }, [searchText, notes]);
+    }, [searchText, notes, taskLists]);
 
     useEffect(() => {
         const fetchNotes = async () => {
@@ -71,21 +99,30 @@ const Home: React.FC = () => {
                 setIsLoading(true);
                 if (auth.currentUser) {
                     const response = await axios.get(`http://localhost:5000/api/v1/note/${auth.currentUser.uid}`);
-                    console.log('Fetched notes:', response.data.data);
-                    setNotes(response.data.data);
+                    const fetchedItems = response.data.data;
 
-                    // Use response.data directly to set pinnedNote
-                    const pinned = response.data.find((note: Note) => note.pinned);
-                    setPinnedNote(pinned || null);
+                    // Separate notes and task lists
+                    const regularNotes = fetchedItems.filter((item: ListItem) =>
+                        item.type === 'note'
+                    ) as Note[];
+
+                    const taskLists = fetchedItems.filter((item: ListItem) =>
+                        item.type === 'tasklist'
+                    ) as TaskList[];
+
+                    setNotes(regularNotes);
+                    setTaskLists(taskLists);
+
+                    // Set pinned item
+                    const pinnedItem = fetchedItems.find((item: ListItem) => item.pinned);
+                    setPinnedNote(pinnedItem);
                 }
             } catch (error) {
                 console.error('Error fetching notes:', error);
             } finally {
                 setIsLoading(false);
             }
-
-    };
-
+        };
 
 
         // Add authentication state listener
@@ -148,34 +185,53 @@ const Home: React.FC = () => {
                 title: note.title,
                 content: note.content,
                 backgroundColor: note.backgroundColor,
-                images: JSON.stringify(note.images),
-                reminder: note.reminder ? note.reminder.toString() : null,
+                images: note.images ? JSON.stringify(note.images) : undefined,
+                reminder: note.reminder ? note.reminder.toString() : undefined,
             }
         });
     };
 
+    const handleTaskListPress = (taskList: TaskList) => {
+        router.push({
+            pathname: '/TaskList',
+            params: {
+                taskListId: taskList.id,
+                title: taskList.title,
+                tasks: JSON.stringify(taskList.tasks),
+                backgroundColor: taskList.backgroundColor
+            }
+        });
+    };
     return (
         <ThemedView style={styles.container}>
             {/* Floating Action Button */}
             {pinnedNote && (
-                <NoteCard note={pinnedNote} onPress={handleNotePress} />
+                pinnedNote.type === 'tasklist' ? (
+                    <TaskListCard taskList={pinnedNote} onPress={handleTaskListPress} />
+                ) : (
+                    <NoteCard note={pinnedNote} onPress={handleNotePress} />
+                )
             )}
             <FlatList
-                data={filteredNotes}
+                data={[...filteredNotes, ...filteredTaskLists] as ListItem[]}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 columnWrapperStyle={styles.row}
                 renderItem={({ item }) => (
                     <View style={styles.columnItem}>
-                        <NoteCard note={item} onPress={handleNotePress} />
+                        {item.type === 'tasklist' ? (
+                            <TaskListCard taskList={item} onPress={handleTaskListPress} />
+                        ) : (
+                            <NoteCard note={item} onPress={handleNotePress} />
+                        )}
                     </View>
                 )}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Text style={styles.emptyText}>
                             {searchText && searchText.trim() !== ''
-                                ? 'No notes found matching your search'
-                                : 'No notes yet'}
+                                ? 'No items found matching your search'
+                                : 'No items yet'}
                         </Text>
                     </View>
                 }
