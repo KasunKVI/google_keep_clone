@@ -3,6 +3,7 @@ import  Icon  from 'react-native-vector-icons/MaterialIcons';
 import { StyleSheet, View, TextInput, TouchableOpacity, FlatList, Text } from 'react-native';
 import {saveTaskList}  from "@/services/TaskListService";
 import {useRouter} from "expo-router";
+import {auth} from "@/firebaseConfig";
 
 interface Task {
     id: number;
@@ -37,21 +38,29 @@ const TaskList = () => {
 
     const handleSaveChanges = async () => {
         try {
-            console.log('Saving tasks:', tasks);
+            if (auth.currentUser) {
+                console.log('User:', auth.currentUser.uid);
+
+                const userId = auth.currentUser.uid;
+                const task = {
+                    title,
+                    tasks,
+                    userId,
+                };
+
+                const response = await saveTaskList(task);
+
+                console.log('Response:', response);
+                if (response) {
+                    console.log('Task list saved successfully');
+                    router.push('/home/homePage');
+                }
 
 
-            const task = {
-                title,
-                tasks,
-            };
-
-            const response = await saveTaskList(task);
-
-            console.log('Response:', response);
-            if (response) {
-                console.log('Task list saved successfully');
-                router.push('/home/homePage');
             }
+
+
+
 
         } catch (error) {
             console.error('Error saving tasks:', error);
