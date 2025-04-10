@@ -8,6 +8,11 @@
       "developmentClient": true,
       "distribution": "internal"
     },
+    "test": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://localhost:5000/api/v1"
+      }
+    },
     "preview": {
       "distribution": "internal",
         "android": {
@@ -15,7 +20,10 @@
         }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://localhost:5000/api/v1"
+      }
     }
   },
   "submit": {

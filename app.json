@@ -13,14 +13,18 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.google_keep_clone"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.google_keep_clone"
+      "package": "com.anonymous.google_keep_clone",
+      "permissions": [],
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",

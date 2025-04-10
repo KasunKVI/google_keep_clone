@@ -36,6 +36,7 @@
     "expo-linear-gradient": "^13.0.2",
     "expo-linking": "~6.3.1",
     "expo-modules-autolinking": "~1.11.0",
+    "expo-notifications": "~0.28.19",
     "expo-router": "~3.5.24",
     "expo-splash-screen": "~0.27.7",
     "expo-status-bar": "~1.12.1",
@@ -57,11 +58,11 @@
     "react-native-vector-icons": "^10.0.0",
     "react-native-web": "~0.19.10",
     "react-native-webview": "^13.12.3",
-    "universal-cookie": "^7.2.2",
-    "expo-notifications": "~0.28.19"
+    "universal-cookie": "^7.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@react-native-community/cli": "^15.1.2",
     "@types/jest": "^29.5.12",
     "@types/react": "~18.2.45",
     "@types/react-native-vector-icons": "^6.4.18",
